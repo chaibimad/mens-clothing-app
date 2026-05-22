@@ -1,0 +1,86 @@
+<div class="cart-container">
+  <h1 class="cart-title">Your Shopping Cart</h1>
+
+  <ng-container *ngIf="cartItems$ | async as cartItems">
+    <div class="cart-content" *ngIf="cartItems.length > 0; else emptyCart">
+
+      <!-- Cart Items List -->
+      <div class="cart-items-section">
+        <div class="cart-item" *ngFor="let item of cartItems">
+          <div class="item-image" [routerLink]="['/product', item.product_slug]">
+            <img [src]="item.imageUrl" [alt]="item.product_name">
+          </div>
+
+          <div class="item-details">
+            <h3 class="item-name" [routerLink]="['/product', item.product_slug]">{{ item.product_name }}</h3>
+            <p class="item-meta">{{ item.variant_title }}</p>
+            <p class="item-price">{{ item.price_at_add | currency }} each</p>
+
+            <div class="item-actions">
+              <div class="quantity-controls">
+                <button mat-icon-button class="qty-btn"
+                        (click)="updateQuantity(item, item.quantity - 1)"
+                        [disabled]="item.quantity <= 1">
+                  <mat-icon>remove</mat-icon>
+                </button>
+                <span class="qty-value">{{ item.quantity }}</span>
+                <button mat-icon-button class="qty-btn"
+                        (click)="updateQuantity(item, item.quantity + 1)">
+                  <mat-icon>add</mat-icon>
+                </button>
+              </div>
+              <span class="item-subtotal">{{ (item.price_at_add * item.quantity) | currency }}</span>
+              <button mat-button color="warn" class="remove-btn" (click)="removeItem(item)">
+                <mat-icon>delete_outline</mat-icon> Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Order Summary -->
+      <div class="order-summary-section">
+        <div class="summary-card">
+          <h2>Order Summary</h2>
+          <mat-divider></mat-divider>
+
+          <div class="summary-row">
+            <span>Items ({{ totalItems$ | async }}):</span>
+            <span>{{ totalPrice$ | async | currency }}</span>
+          </div>
+
+          <div class="summary-row">
+            <span>Shipping:</span>
+            <span>{{ 5.00 | currency }}</span>
+          </div>
+
+          <div class="summary-row">
+            <span>Tax (8%):</span>
+            <span>{{ ((totalPrice$ | async) ?? 0) * 0.08 | currency }}</span>
+          </div>
+
+          <mat-divider></mat-divider>
+
+          <div class="summary-row total-row">
+            <span>Total:</span>
+            <span>{{ (((totalPrice$ | async) ?? 0) + 5 + (((totalPrice$ | async) ?? 0) * 0.08)) | currency }}</span>
+          </div>
+
+          <button mat-raised-button color="primary" class="checkout-btn" routerLink="/checkout">
+            PROCEED TO CHECKOUT
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty Cart Template -->
+    <ng-template #emptyCart>
+      <div class="empty-cart-message">
+        <mat-icon class="empty-icon">shopping_bag</mat-icon>
+        <h2>Your cart is empty.</h2>
+        <p>Looks like you haven't added anything yet.</p>
+        <button mat-raised-button color="primary" routerLink="/products">START SHOPPING</button>
+      </div>
+    </ng-template>
+  </ng-container>
+</div>

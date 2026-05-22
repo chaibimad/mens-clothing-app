@@ -1,0 +1,273 @@
+<div class="profile-container">
+  
+  <header class="profile-header">
+    <h1>Account Dashboard</h1>
+    <p>Manage your account settings, addresses, and track your purchases.</p>
+  </header>
+
+  <div class="loading-state" *ngIf="isLoading">
+    <mat-icon class="loading-spinner">sync</mat-icon>
+    <p>Loading your profile details...</p>
+  </div>
+
+  <mat-tab-group class="profile-tabs" color="primary" *ngIf="!isLoading">
+    
+    <!-- TAB 1: Profile & Addresses -->
+    <mat-tab label="My Profile">
+      <div class="tab-grid">
+        
+        <!-- Left: Profile Details Form -->
+        <div class="profile-details-section">
+          <mat-card class="dashboard-card">
+            <h2>Personal Information</h2>
+            <mat-divider></mat-divider>
+
+            <form #profileForm="ngForm" (ngSubmit)="saveProfile()">
+              <div class="form-row">
+                <mat-form-field appearance="outline" class="half-width">
+                  <mat-label>First Name</mat-label>
+                  <input matInput [(ngModel)]="profile.first_name" name="firstName" required>
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="half-width">
+                  <mat-label>Last Name</mat-label>
+                  <input matInput [(ngModel)]="profile.last_name" name="lastName" required>
+                </mat-form-field>
+              </div>
+
+              <div class="form-row">
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Email Address</mat-label>
+                  <input matInput [value]="profile.email" name="email" disabled>
+                  <mat-hint>Email cannot be modified.</mat-hint>
+                </mat-form-field>
+              </div>
+
+              <div class="form-row">
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Phone Number</mat-label>
+                  <input matInput [(ngModel)]="profile.phone_number" name="phone" placeholder="+1 (555) 123-4567">
+                </mat-form-field>
+              </div>
+
+              <button mat-raised-button color="primary" class="save-profile-btn" type="submit" [disabled]="!profileForm.form.valid">
+                SAVE CHANGES
+              </button>
+            </form>
+          </mat-card>
+        </div>
+
+        <!-- Right: Address Manager -->
+        <div class="profile-address-section">
+          <mat-card class="dashboard-card">
+            <div class="card-header-actions">
+              <h2>Saved Addresses</h2>
+              <button mat-stroked-button color="primary" (click)="openNewAddressForm()" *ngIf="!showAddressForm">
+                <mat-icon>add</mat-icon> Add Address
+              </button>
+            </div>
+            <mat-divider></mat-divider>
+
+            <!-- Inline Address Form -->
+            <div class="address-form-box" *ngIf="showAddressForm">
+              <h3>{{ editingAddressId ? 'Edit Address' : 'Add New Address' }}</h3>
+              
+              <form #addrForm="ngForm" (ngSubmit)="saveAddress()">
+                <div class="form-row">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Recipient Name</mat-label>
+                    <input matInput [(ngModel)]="addressForm.recipient_name" name="recipient" required>
+                  </mat-form-field>
+                </div>
+                <div class="form-row">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Street Address</mat-label>
+                    <input matInput [(ngModel)]="addressForm.address_line1" name="line1" required>
+                  </mat-form-field>
+                </div>
+                <div class="form-row">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Apartment, unit, suite (optional)</mat-label>
+                    <input matInput [(ngModel)]="addressForm.address_line2" name="line2">
+                  </mat-form-field>
+                </div>
+                <div class="form-grid-3">
+                  <mat-form-field appearance="outline">
+                    <mat-label>City</mat-label>
+                    <input matInput [(ngModel)]="addressForm.city" name="city" required>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label>State</mat-label>
+                    <input matInput [(ngModel)]="addressForm.state" name="state" required>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label>Postal Code</mat-label>
+                    <input matInput [(ngModel)]="addressForm.postal_code" name="postal" required>
+                  </mat-form-field>
+                </div>
+
+                <div class="address-checkboxes">
+                  <mat-checkbox [(ngModel)]="addressForm.is_default_shipping" name="defShip" color="primary">
+                    Default shipping address
+                  </mat-checkbox>
+                  <mat-checkbox [(ngModel)]="addressForm.is_default_billing" name="defBill" color="primary">
+                    Default billing address
+                  </mat-checkbox>
+                </div>
+
+                <div class="form-actions">
+                  <button mat-button type="button" (click)="closeAddressForm()">CANCEL</button>
+                  <button mat-raised-button color="primary" type="submit" [disabled]="!addrForm.form.valid">SAVE ADDRESS</button>
+                </div>
+              </form>
+              <mat-divider style="margin: 20px 0;"></mat-divider>
+            </div>
+
+            <!-- Address Cards List -->
+            <div class="address-cards-list" *ngIf="addresses.length > 0; else noAddresses">
+              <div class="address-card" *ngFor="let addr of addresses">
+                <div class="address-card__content">
+                  <h4>{{ addr.recipient_name }}</h4>
+                  <p>{{ addr.address_line1 }}</p>
+                  <p *ngIf="addr.address_line2">{{ addr.address_line2 }}</p>
+                  <p>{{ addr.city }}, {{ addr.state }} {{ addr.postal_code }}</p>
+                  <p>{{ addr.country }}</p>
+
+                  <!-- Default Badges -->
+                  <div class="default-badges">
+                    <span class="badge default-shipping" *ngIf="addr.is_default_shipping">
+                      <mat-icon>local_shipping</mat-icon> Default Shipping
+                    </span>
+                    <span class="badge default-billing" *ngIf="addr.is_default_billing">
+                      <mat-icon>receipt</mat-icon> Default Billing
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Card Action Controls -->
+                <div class="address-card__actions">
+                  <button mat-icon-button color="primary" (click)="openEditAddressForm(addr)" title="Edit">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button mat-icon-button color="warn" (click)="deleteAddress(addr.id)" title="Delete">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                  
+                  <button mat-button class="set-default-btn" *ngIf="!addr.is_default_shipping" (click)="setAddressDefault(addr, 'shipping')">
+                    Set Ship Default
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <ng-template #noAddresses>
+              <div class="empty-list-box" *ngIf="!showAddressForm">
+                <mat-icon>location_off</mat-icon>
+                <p>You haven't saved any addresses yet.</p>
+              </div>
+            </ng-template>
+          </mat-card>
+        </div>
+
+      </div>
+    </mat-tab>
+
+    <!-- TAB 2: Order History -->
+    <mat-tab label="My Orders">
+      <mat-card class="dashboard-card" style="margin-top: 24px;">
+        <h2>Order History</h2>
+        <mat-divider style="margin-bottom: 24px;"></mat-divider>
+
+        <div class="orders-list-box" *ngIf="orders.length > 0; else noOrders">
+          <mat-accordion class="orders-accordion" multi="false">
+            
+            <mat-expansion-panel *ngFor="let order of orders">
+              
+              <!-- Accordion Header -->
+              <mat-expansion-panel-header>
+                <mat-panel-title class="order-header-title">
+                  <div class="order-id-group">
+                    <span class="label">ORDER ID</span>
+                    <strong class="order-id">{{ order.id }}</strong>
+                  </div>
+                </mat-panel-title>
+                <mat-panel-description class="order-header-desc">
+                  <span class="order-date">{{ formatDate(order.created_at) | date:'mediumDate' }}</span>
+                  <span class="order-total">{{ order.total_amount | currency }}</span>
+                  <span class="status-badge" [ngClass]="order.order_status.toLowerCase()">
+                    {{ order.order_status }}
+                  </span>
+                </mat-panel-description>
+              </mat-expansion-panel-header>
+
+              <!-- Expanded Panel Content -->
+              <div class="order-expanded-details">
+                <div class="details-grid">
+                  <!-- Delivery Details Summary -->
+                  <div class="grid-card delivery-details">
+                    <h4>Delivery Details</h4>
+                    <p><strong>Name:</strong> {{ order.shipping_name }}</p>
+                    <p><strong>Address:</strong> {{ order.shipping_address }}</p>
+                    <p><strong>Billing Name:</strong> {{ order.billing_name }}</p>
+                  </div>
+
+                  <!-- Price Breakdown -->
+                  <div class="grid-card receipt-details">
+                    <h4>Receipt Details</h4>
+                    <div class="receipt-row">
+                      <span>Subtotal</span>
+                      <span>{{ order.subtotal | currency }}</span>
+                    </div>
+                    <div class="receipt-row">
+                      <span>Shipping</span>
+                      <span>{{ order.shipping_fee | currency }}</span>
+                    </div>
+                    <div class="receipt-row">
+                      <span>Tax</span>
+                      <span>{{ order.tax_fee | currency }}</span>
+                    </div>
+                    <mat-divider></mat-divider>
+                    <div class="receipt-row total-row">
+                      <span>Total Amount Paid</span>
+                      <strong class="total">{{ order.total_amount | currency }}</strong>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Products Table -->
+                <div class="order-products-box">
+                  <h4>Ordered Products</h4>
+                  <div class="order-items-grid">
+                    <div class="order-item-row" *ngFor="let item of order.items">
+                      <img [src]="item.imageUrl" [alt]="item.product_name" class="item-thumb">
+                      <div class="item-info">
+                        <h5>{{ item.product_name }}</h5>
+                        <p>{{ item.variant_title }}</p>
+                        <span class="qty">Qty: {{ item.quantity }}</span>
+                      </div>
+                      <div class="item-price">
+                        {{ (item.price_at_purchase * item.quantity) | currency }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+            </mat-expansion-panel>
+          </mat-accordion>
+        </div>
+
+        <ng-template #noOrders>
+          <div class="empty-list-box">
+            <mat-icon>shopping_bag</mat-icon>
+            <p>You haven't placed any orders yet.</p>
+            <a mat-raised-button color="primary" routerLink="/products" style="margin-top: 16px;">
+              SHOP PRODUCTS
+            </a>
+          </div>
+        </ng-template>
+      </mat-card>
+    </mat-tab>
+
+  </mat-tab-group>
+</div>

@@ -1,0 +1,53 @@
+<section class="page-hero">
+  <div class="page-hero__content">
+    <p class="page-hero__eyebrow">Contact</p>
+    <h1>Get In Touch</h1>
+    <p class="page-hero__subtitle">
+      Reach out for product questions, order support, sizing advice, or partnership requests.
+    </p>
+  </div>
+</section>
+
+<section class="contact-layout">
+  <div class="contact-methods">
+    <mat-card class="contact-card" *ngFor="let method of contactMethods">
+      <mat-icon>{{ method.icon }}</mat-icon>
+      <div>
+        <h2>{{ method.title }}</h2>
+        <p class="contact-card__value">{{ method.value }}</p>
+        <p>{{ method.description }}</p>
+      </div>
+    </mat-card>
+  </div>
+
+  <mat-card class="contact-form-card">
+    <h2>Send A Message</h2>
+    <p>Tell us what you need and we will point you to the right team.</p>
+
+    <div class="form-grid">
+      <label>
+        <span>Name</span>
+        <input [(ngModel)]="name" placeholder="Your name" />
+      </label>
+
+      <label>
+        <span>Email</span>
+        <input [(ngModel)]="email" type="email" placeholder="you@example.com" />
+      </label>
+    </div>
+
+    <label class="message-field">
+      <span>Message</span>
+      <textarea [(ngModel)]="message" rows="6" placeholder="How can we help?"></textarea>
+    </label>
+
+    <div class="form-actions">
+      <button mat-raised-button color="primary" (click)="submitForm()">Send Message</button>
+      <a mat-button routerLink="/faq">Read FAQs</a>
+    </div>
+
+    <p class="success-message" *ngIf="submitted">
+      Thanks, {{ name || 'there' }}. Your message is ready to be reviewed by the support team.
+    </p>
+  </mat-card>
+</section>

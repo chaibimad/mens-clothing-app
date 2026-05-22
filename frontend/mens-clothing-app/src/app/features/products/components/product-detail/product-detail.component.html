@@ -1,0 +1,210 @@
+<div class="product-loading" *ngIf="isLoading">
+  <mat-spinner diameter="48"></mat-spinner>
+  <p>Loading product...</p>
+</div>
+
+<div class="product-detail-container" *ngIf="!isLoading && product">
+  <div class="product-detail__grid">
+    <!-- Image Gallery -->
+    <div class="product-gallery">
+      <div class="main-image">
+        <img [src]="product.images[selectedImageIndex]" [alt]="product.name">
+      </div>
+      <div class="thumbnail-list">
+        <div class="thumbnail"
+             *ngFor="let img of product.images; let i = index"
+             [class.active]="i === selectedImageIndex"
+             (click)="selectImage(i)">
+          <img [src]="img" [alt]="product.name">
+        </div>
+      </div>
+    </div>
+
+    <!-- Product Info -->
+    <div class="product-info">
+      <div class="breadcrumb">
+        <a routerLink="/">Home</a> / <a routerLink="/products">Products</a> / {{ product.name }}
+      </div>
+
+      <h1 class="product-info__name">{{ product.name }}</h1>
+
+      <div class="product-info__rating">
+        <div class="stars">
+          <mat-icon *ngFor="let s of [1,2,3,4,5]" [class.filled]="s <= product.rating">star</mat-icon>
+        </div>
+        <span class="reviews-count">({{ product.reviews }} Customer Reviews)</span>
+      </div>
+
+      <div class="product-info__price">
+        <span class="current-price">{{ effectivePrice | currency }}</span>
+        <span class="base-note" *ngIf="selectedVariant && selectedVariant.price_modifier !== 0">
+          Base: {{ product.base_price | currency }}
+        </span>
+      </div>
+
+      <p class="product-info__description">{{ product.description }}</p>
+
+      <mat-divider></mat-divider>
+
+      <!-- Variant / Size Selection -->
+      <div class="selection-group">
+        <label class="selection-label">
+          Select Size
+          <span class="stock-warning" *ngIf="selectedVariant && !inStock"> — Out of Stock</span>
+        </label>
+        <div class="size-options">
+          <button
+            mat-stroked-button
+            *ngFor="let v of variants"
+            [class.selected]="selectedVariant?.id === v.id"
+            [disabled]="v.stock_quantity === 0"
+            (click)="selectVariant(v)"
+          >
+            {{ v.title }}
+            <span class="stock-badge" *ngIf="v.stock_quantity <= 5 && v.stock_quantity > 0">
+              ({{ v.stock_quantity }} left)
+            </span>
+          </button>
+          <p class="no-variants" *ngIf="variants.length === 0">Loading sizes...</p>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="product-actions">
+        <button
+          mat-raised-button color="primary"
+          class="add-to-cart-btn"
+          (click)="addToCart()"
+          [disabled]="isAddingToCart || !inStock"
+        >
+          <mat-icon>shopping_bag</mat-icon>
+          {{ isAddingToCart ? 'Adding...' : 'ADD TO CART' }}
+        </button>
+        <button mat-icon-button class="wishlist-btn" aria-label="Add to Wishlist">
+          <mat-icon>favorite_border</mat-icon>
+        </button>
+      </div>
+
+      <!-- Metadata -->
+      <div class="product-meta">
+        <div class="meta-item" *ngIf="selectedVariant">
+          <strong>SKU:</strong> {{ selectedVariant.sku }}
+        </div>
+        <div class="meta-item">
+          <strong>Tags:</strong> Fashion, Men, Lifestyle
+        </div>
+        <div class="meta-item" *ngIf="selectedVariant">
+          <strong>In Stock:</strong> {{ selectedVariant.stock_quantity }} units
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Product Reviews Feed and Stars Selector -->
+  <div class="product-reviews-section">
+    <mat-divider></mat-divider>
+    
+    <div class="reviews-header">
+      <h2>Customer Reviews & Ratings</h2>
+    </div>
+
+    <div class="reviews-grid">
+      <!-- Left Column: Summary and Form -->
+      <div class="reviews-left-column">
+        <!-- Summary Stats Card -->
+        <mat-card class="rating-summary-card">
+          <div class="summary-score-box">
+            <span class="score-number">{{ product.rating || 5 }}.0</span>
+            <div class="stars score-stars">
+              <mat-icon *ngFor="let s of [1,2,3,4,5]" [class.filled]="s <= product.rating">star</mat-icon>
+            </div>
+            <span class="score-reviews-count">{{ product.reviews }} customer reviews</span>
+          </div>
+        </mat-card>
+
+        <!-- Write A Review Card -->
+        <mat-card class="write-review-card">
+          <h3>Share Your Experience</h3>
+          
+          <form #reviewForm="ngForm" (ngSubmit)="submitReview()">
+            <div class="rating-picker">
+              <label>Select Rating:</label>
+              <div class="stars-picker-row">
+                <mat-icon 
+                  *ngFor="let s of [1,2,3,4,5]" 
+                  [class.filled]="s <= reviewRating" 
+                  (click)="setRating(s)" 
+                  class="picker-star"
+                  title="Rate {{s}} Stars">
+                  star
+                </mat-icon>
+              </div>
+            </div>
+
+            <div class="comment-field">
+              <mat-form-field appearance="outline" style="width: 100%;">
+                <mat-label>Your Review</mat-label>
+                <textarea 
+                  matInput 
+                  rows="4" 
+                  [(ngModel)]="reviewComment" 
+                  name="comment" 
+                  placeholder="What did you like or dislike? How was the fit?" 
+                  required></textarea>
+              </mat-form-field>
+            </div>
+
+            <div class="review-actions">
+              <button 
+                mat-raised-button 
+                color="primary" 
+                type="submit" 
+                [disabled]="isSubmittingReview || !reviewForm.form.valid">
+                {{ isSubmittingReview ? 'Submitting...' : 'SUBMIT REVIEW' }}
+              </button>
+            </div>
+          </form>
+        </mat-card>
+      </div>
+
+      <!-- Right Column: Existing Reviews List Feed -->
+      <div class="reviews-right-column">
+        <h3>Reviews Feed ({{ reviews.length }})</h3>
+        
+        <div class="reviews-list" *ngIf="reviews.length > 0; else noReviews">
+          <mat-card class="review-item-card" *ngFor="let r of reviews">
+            <div class="review-item-header">
+              <div class="author-info">
+                <div class="avatar-badge">{{ r.user_name.charAt(0).toUpperCase() }}</div>
+                <div class="author-details">
+                  <h4>{{ r.user_name }}</h4>
+                  <span class="post-date">{{ r.created_at.toDate() | date:'mediumDate' }}</span>
+                </div>
+              </div>
+              
+              <div class="stars item-stars">
+                <mat-icon *ngFor="let s of [1,2,3,4,5]" [class.filled]="s <= r.rating">star</mat-icon>
+              </div>
+            </div>
+            
+            <p class="review-comment">{{ r.comment }}</p>
+          </mat-card>
+        </div>
+
+        <ng-template #noReviews>
+          <div class="empty-reviews-box">
+            <mat-icon>chat_bubble_outline</mat-icon>
+            <p>No reviews yet for this product. Be the first to share your experience!</p>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="product-not-found" *ngIf="!isLoading && !product">
+  <mat-icon>sentiment_dissatisfied</mat-icon>
+  <h2>Product not found</h2>
+  <p>This product may have been removed or the link is incorrect.</p>
+  <a mat-raised-button color="primary" routerLink="/products">Browse Products</a>
+</div>

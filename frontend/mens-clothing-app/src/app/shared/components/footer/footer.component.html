@@ -1,0 +1,53 @@
+<footer class="footer">
+  <div class="footer__content">
+    <div class="footer__section footer__section--brand">
+      <h3 class="footer__title">Men's Clothing</h3>
+      <p class="footer__description">
+        Elevate your style with our curated collection of premium menswear. 
+        Quality fabrics, modern cuts, and timeless designs.
+      </p>
+      <div class="footer__socials">
+        <button mat-icon-button aria-label="Facebook"><mat-icon>facebook</mat-icon></button>
+        <button mat-icon-button aria-label="Instagram"><mat-icon>instagram</mat-icon></button>
+        <button mat-icon-button aria-label="Twitter"><mat-icon>twitter</mat-icon></button>
+      </div>
+    </div>
+
+    <div class="footer__section">
+      <h4 class="footer__subtitle">Quick Links</h4>
+      <ul class="footer__links">
+        <li><a routerLink="/">Home</a></li>
+        <li><a routerLink="/products">Shop All</a></li>
+        <li><a routerLink="/category/t-shirts">T-Shirts</a></li>
+        <li><a routerLink="/login">My Account</a></li>
+      </ul>
+    </div>
+
+    <div class="footer__section">
+      <h4 class="footer__subtitle">Customer Care</h4>
+      <ul class="footer__links">
+        <li><a routerLink="/shipping-policy">Shipping Policy</a></li>
+        <li><a routerLink="/returns">Returns & Exchanges</a></li>
+        <li><a routerLink="/size-guide">Size Guide</a></li>
+        <li><a routerLink="/faq">FAQs</a></li>
+      </ul>
+    </div>
+
+    <div class="footer__section">
+      <h4 class="footer__subtitle">Contact Us</h4>
+      <ul class="footer__info">
+        <li><mat-icon>location_on</mat-icon> 123 Fashion Ave, NY 10001</li>
+        <li><mat-icon>phone</mat-icon> +1 (555) 000-1234</li>
+        <li><mat-icon>email</mat-icon> hello&#64;mensclothing.com</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer__bottom">
+    <p>&copy; {{ currentYear }} Men's Clothing Store. All rights reserved.</p>
+    <div class="footer__bottom-links">
+      <a routerLink="/privacy-policy">Privacy Policy</a>
+      <a routerLink="/terms-of-service">Terms of Service</a>
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,223 @@
+<div class="checkout-container">
+  <div class="checkout-grid" *ngIf="!isProcessing; else processingState">
+    
+    <!-- Left Column: Billing, Shipping, Payment Forms -->
+    <div class="checkout-forms">
+      <h1 class="checkout-title">Secure Checkout</h1>
+
+      <form #checkoutForm="ngForm" (ngSubmit)="placeOrder()">
+        <!-- Shipping Form -->
+        <mat-card class="form-card">
+          <h2 class="card-title"><mat-icon>local_shipping</mat-icon> Shipping Information</h2>
+          <mat-divider></mat-divider>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Recipient Name</mat-label>
+              <input matInput [(ngModel)]="shipping.recipient_name" name="shipName" required>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Street Address</mat-label>
+              <input matInput [(ngModel)]="shipping.address_line1" name="shipAddr1" placeholder="123 Main St" required>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Apartment, suite, unit (optional)</mat-label>
+              <input matInput [(ngModel)]="shipping.address_line2" name="shipAddr2" placeholder="Apt 4B">
+            </mat-form-field>
+          </div>
+
+          <div class="form-grid-3">
+            <mat-form-field appearance="outline">
+              <mat-label>City</mat-label>
+              <input matInput [(ngModel)]="shipping.city" name="shipCity" required>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>State / Prov</mat-label>
+              <input matInput [(ngModel)]="shipping.state" name="shipState" placeholder="NY" required>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Postal Code</mat-label>
+              <input matInput [(ngModel)]="shipping.postal_code" name="shipPostal" required>
+            </mat-form-field>
+          </div>
+        </mat-card>
+
+        <!-- Billing Address Toggle -->
+        <mat-card class="form-card">
+          <div class="checkbox-container">
+            <mat-checkbox [(ngModel)]="billingSameAsShipping" name="billingToggle" color="primary">
+              My billing address is the same as my shipping address
+            </mat-checkbox>
+          </div>
+
+          <!-- Billing Form (conditional) -->
+          <div *ngIf="!billingSameAsShipping" class="billing-fields">
+            <h2 class="card-title" style="margin-top: 16px;"><mat-icon>receipt</mat-icon> Billing Information</h2>
+            <mat-divider></mat-divider>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Billing Recipient</mat-label>
+                <input matInput [(ngModel)]="billing.recipient_name" name="billName" required>
+              </mat-form-field>
+            </div>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Street Address</mat-label>
+                <input matInput [(ngModel)]="billing.address_line1" name="billAddr1" required>
+              </mat-form-field>
+            </div>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Apartment, suite, unit (optional)</mat-label>
+                <input matInput [(ngModel)]="billing.address_line2" name="billAddr2">
+              </mat-form-field>
+            </div>
+
+            <div class="form-grid-3">
+              <mat-form-field appearance="outline">
+                <mat-label>City</mat-label>
+                <input matInput [(ngModel)]="billing.city" name="billCity" required>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>State / Prov</mat-label>
+                <input matInput [(ngModel)]="billing.state" name="billState" required>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Postal Code</mat-label>
+                <input matInput [(ngModel)]="billing.postal_code" name="billPostal" required>
+              </mat-form-field>
+            </div>
+          </div>
+        </mat-card>
+
+        <!-- Payment Details Form -->
+        <mat-card class="form-card">
+          <h2 class="card-title"><mat-icon>credit_card</mat-icon> Payment Information</h2>
+          <mat-divider></mat-divider>
+
+          <div class="secure-badge">
+            <mat-icon>lock</mat-icon>
+            <span>All transactions are secure and encrypted.</span>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Card Number</mat-label>
+              <input matInput 
+                     [(ngModel)]="payment.cardNumber" 
+                     name="cardNumber"
+                     (input)="formatCardNumber()"
+                     placeholder="0000 0000 0000 0000"
+                     required>
+              <mat-icon matSuffix>payment</mat-icon>
+            </mat-form-field>
+          </div>
+
+          <div class="form-grid-2">
+            <mat-form-field appearance="outline">
+              <mat-label>Expiration Date</mat-label>
+              <input matInput 
+                     [(ngModel)]="payment.expiry" 
+                     name="expiry"
+                     (input)="formatExpiry()"
+                     placeholder="MM/YY"
+                     required>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Security Code (CVV)</mat-label>
+              <input matInput 
+                     [(ngModel)]="payment.cvv" 
+                     name="cvv"
+                     (input)="formatCvv()"
+                     placeholder="123"
+                     required>
+            </mat-form-field>
+          </div>
+
+          <button mat-raised-button color="primary" class="place-order-btn" type="submit" [disabled]="!checkoutForm.form.valid">
+            PAY & PLACE ORDER ({{ total | currency }})
+          </button>
+        </mat-card>
+      </form>
+    </div>
+
+    <!-- Right Column: Order Summary -->
+    <div class="checkout-summary">
+      <mat-card class="summary-card">
+        <h2>Order Summary</h2>
+        <mat-divider></mat-divider>
+
+        <!-- Items Snapshot -->
+        <div class="summary-items">
+          <div class="summary-item" *ngFor="let item of cartItems">
+            <div class="summary-item__image">
+              <img [src]="item.imageUrl" [alt]="item.product_name">
+              <span class="qty-badge">{{ item.quantity }}</span>
+            </div>
+            <div class="summary-item__details">
+              <h4>{{ item.product_name }}</h4>
+              <p>{{ item.variant_title }}</p>
+            </div>
+            <div class="summary-item__price">
+              {{ (item.price_at_add * item.quantity) | currency }}
+            </div>
+          </div>
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <!-- Totals Calculations -->
+        <div class="summary-totals">
+          <div class="totals-row">
+            <span>Subtotal</span>
+            <span>{{ subtotal | currency }}</span>
+          </div>
+          <div class="totals-row">
+            <span>Shipping</span>
+            <span>{{ shippingFee | currency }}</span>
+          </div>
+          <div class="totals-row">
+            <span>Estimated Tax (8%)</span>
+            <span>{{ tax | currency }}</span>
+          </div>
+
+          <mat-divider></mat-divider>
+
+          <div class="totals-row total-row">
+            <span>Total</span>
+            <span class="total-price">{{ total | currency }}</span>
+          </div>
+        </div>
+
+        <div class="security-badges">
+          <div class="badge-item">
+            <mat-icon>verified</mat-icon>
+            <span>30-Day Guarantee</span>
+          </div>
+          <div class="badge-item">
+            <mat-icon>support</mat-icon>
+            <span>7/7 Live Support</span>
+          </div>
+        </div>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Loading / Processing State -->
+  <ng-template #processingState>
+    <div class="processing-container">
+      <mat-spinner diameter="64"></mat-spinner>
+      <h2>Processing Transaction Securely</h2>
+      <p>Please do not close this window or click refresh.</p>
+    </div>
+  </ng-template>
+</div>

@@ -1,0 +1,25 @@
+<section class="page-hero">
+  <div class="page-hero__content">
+    <p class="page-hero__eyebrow">Men's Clothing</p>
+    <h1>{{ title }}</h1>
+    <p class="page-hero__subtitle">{{ subtitle }}</p>
+  </div>
+</section>
+
+<section class="highlights" *ngIf="highlights.length">
+  <mat-card class="highlight-card" *ngFor="let highlight of highlights">
+    <mat-icon>check_circle</mat-icon>
+    <span>{{ highlight }}</span>
+  </mat-card>
+</section>
+
+<section class="content-grid">
+  <mat-card class="content-card" *ngFor="let section of sections">
+    <h2>{{ section.heading }}</h2>
+    <p *ngFor="let paragraph of section.body">{{ paragraph }}</p>
+  </mat-card>
+</section>
+
+<section class="page-cta" *ngIf="cta">
+  <a mat-raised-button color="primary" [routerLink]="cta.link">{{ cta.label }}</a>
+</section>

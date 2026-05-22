@@ -1,0 +1,93 @@
+<div class="success-container" *ngIf="order$ | async as order">
+  
+  <!-- Hero Success Checkmark -->
+  <div class="success-hero">
+    <div class="checkmark-circle">
+      <mat-icon class="checkmark-icon">check</mat-icon>
+    </div>
+    <h1 class="success-title">Order Confirmed!</h1>
+    <p class="success-subtitle">Thank you for your purchase. Your order has been received and is being processed.</p>
+    <div class="order-id-badge">
+      <span>Order ID:</span>
+      <strong class="order-id">{{ order.id }}</strong>
+    </div>
+  </div>
+
+  <div class="success-grid">
+    
+    <!-- Left Column: Delivery Details & Items -->
+    <div class="success-details">
+      <!-- Shipping Info Card -->
+      <mat-card class="details-card">
+        <h3><mat-icon>local_shipping</mat-icon> Delivery Information</h3>
+        <mat-divider></mat-divider>
+        <div class="info-content">
+          <p><strong>Recipient Name:</strong> {{ order.shipping_name }}</p>
+          <p><strong>Shipping Address:</strong> {{ order.shipping_address }}</p>
+          <p><strong>Status:</strong> <span class="status-chip">{{ order.order_status }}</span></p>
+        </div>
+      </mat-card>
+
+      <!-- Items Details Card -->
+      <mat-card class="details-card">
+        <h3><mat-icon>shopping_bag</mat-icon> Ordered Items</h3>
+        <mat-divider></mat-divider>
+        <div class="items-list" *ngIf="orderItems$ | async as items">
+          <div class="item-row" *ngFor="let item of items">
+            <img [src]="item.imageUrl" [alt]="item.product_name" class="item-thumb">
+            <div class="item-info">
+              <h4>{{ item.product_name }}</h4>
+              <p>{{ item.variant_title }}</p>
+              <span class="item-qty">Qty: {{ item.quantity }}</span>
+            </div>
+            <div class="item-price">
+              {{ (item.price_at_purchase * item.quantity) | currency }}
+            </div>
+          </div>
+        </div>
+      </mat-card>
+    </div>
+
+    <!-- Right Column: Receipt Breakdown -->
+    <div class="success-receipt">
+      <mat-card class="receipt-card">
+        <h3>Receipt summary</h3>
+        <mat-divider></mat-divider>
+
+        <div class="totals-breakdown">
+          <div class="breakdown-row">
+            <span>Subtotal</span>
+            <span>{{ order.subtotal | currency }}</span>
+          </div>
+          <div class="breakdown-row">
+            <span>Shipping</span>
+            <span>{{ order.shipping_fee | currency }}</span>
+          </div>
+          <div class="breakdown-row">
+            <span>Tax</span>
+            <span>{{ order.tax_fee | currency }}</span>
+          </div>
+
+          <mat-divider></mat-divider>
+
+          <div class="breakdown-row total-row">
+            <span>Total Paid</span>
+            <span class="final-price">{{ order.total_amount | currency }}</span>
+          </div>
+        </div>
+
+        <div class="receipt-footer">
+          <mat-icon>shield</mat-icon>
+          <span>Payment secured via Stripe SSL</span>
+        </div>
+      </mat-card>
+
+      <div class="action-buttons">
+        <a mat-raised-button color="primary" class="continue-btn" routerLink="/products">
+          <mat-icon>arrow_back</mat-icon> CONTINUE SHOPPING
+        </a>
+      </div>
+    </div>
+
+  </div>
+</div>

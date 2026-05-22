@@ -1,0 +1,376 @@
+<div class="admin-container">
+  
+  <header class="admin-header">
+    <h1>Store Control Center</h1>
+    <p>Manage products, inventories, variants, and product categories.</p>
+  </header>
+
+  <div class="loading-state" *ngIf="isLoading">
+    <mat-icon class="loading-spinner">sync</mat-icon>
+    <p>Loading catalogs and databases...</p>
+  </div>
+
+  <mat-tab-group class="admin-tabs" color="primary" *ngIf="!isLoading">
+    
+    <!-- TAB 1: Product Catalog Management -->
+    <mat-tab label="Products Manager">
+      <div class="tab-content">
+        
+        <!-- View A: Products Table List -->
+        <div class="products-list-view" *ngIf="!showProductForm">
+          <div class="view-header">
+            <h2>Product Catalog ({{ products.length }} items)</h2>
+            <button mat-raised-button color="primary" (click)="openNewProductForm()">
+              <mat-icon>add</mat-icon> ADD PRODUCT
+            </button>
+          </div>
+          <mat-divider></mat-divider>
+
+          <div class="products-grid-list">
+            <div class="admin-product-row" *ngFor="let prod of products">
+              <img [src]="prod.imageUrl" [alt]="prod.name" class="row-thumb">
+              
+              <div class="row-details">
+                <h3>{{ prod.name }}</h3>
+                <p class="row-slug">/product/{{ prod.slug }}</p>
+                <div class="row-meta">
+                  <span class="category-tag">{{ prod.category_id }}</span>
+                  <span class="published-badge" [ngClass]="prod.is_published ? 'published' : 'draft'">
+                    {{ prod.is_published ? 'Published' : 'Draft' }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="row-price">
+                {{ prod.base_price | currency }}
+              </div>
+
+              <div class="row-actions">
+                <button mat-stroked-button color="primary" (click)="openEditProductForm(prod)">
+                  <mat-icon>edit</mat-icon> Edit / Variants
+                </button>
+                <button mat-icon-button color="warn" (click)="deleteProduct(prod.id)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- View B: Product Form & Variant Editor Grid -->
+        <div class="product-editor-grid" *ngIf="showProductForm">
+          
+          <!-- Column 1: Product Settings Form -->
+          <div class="editor-column settings-box">
+            <mat-card class="admin-card">
+              <div class="card-header-actions">
+                <h2>{{ editingProductId ? 'Edit Product Details' : 'Add New Product' }}</h2>
+                <button mat-icon-button (click)="closeProductForm()"><mat-icon>close</mat-icon></button>
+              </div>
+              <mat-divider></mat-divider>
+
+              <form #prodForm="ngForm" (ngSubmit)="saveProduct()">
+                <div class="form-row">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Product Name</mat-label>
+                    <input matInput [(ngModel)]="productForm.name" name="name" (input)="generateProductSlug()" required>
+                  </mat-form-field>
+                </div>
+
+                <div class="form-row">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Product Slug (SEO URL)</mat-label>
+                    <input matInput [(ngModel)]="productForm.slug" name="slug" required>
+                  </mat-form-field>
+                </div>
+
+                <div class="form-row">
+                  <mat-form-field appearance="outline" class="half-width">
+                    <mat-label>Category</mat-label>
+                    <mat-select [(ngModel)]="productForm.category_id" name="cat" required>
+                      <mat-option *ngFor="let cat of categories" [value]="cat.id">
+                        {{ cat.name }}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="half-width">
+                    <mat-label>Base Price ($)</mat-label>
+                    <input matInput type="number" step="0.01" [(ngModel)]="productForm.base_price" name="basePrice" required>
+                  </mat-form-field>
+                </div>
+
+                <div class="form-row">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Image URL</mat-label>
+                    <input matInput [(ngModel)]="productForm.imageUrl" name="img" placeholder="https://images.unsplash.com/..." required>
+                  </mat-form-field>
+                </div>
+
+                <div class="form-row">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Product Description</mat-label>
+                    <textarea matInput rows="4" [(ngModel)]="productForm.description" name="desc"></textarea>
+                  </mat-form-field>
+                </div>
+
+                <div class="checkbox-container">
+                  <mat-checkbox [(ngModel)]="productForm.is_published" name="pub" color="primary">
+                    Publish this product (visible in store listings)
+                  </mat-checkbox>
+                </div>
+
+                <div class="form-actions">
+                  <button mat-button type="button" (click)="closeProductForm()">CANCEL</button>
+                  <button mat-raised-button color="primary" type="submit" [disabled]="!prodForm.form.valid">
+                    SAVE PRODUCT
+                  </button>
+                </div>
+              </form>
+            </mat-card>
+          </div>
+
+          <!-- Column 2: Variants Subcollection Manager -->
+          <div class="editor-column variants-box">
+            <mat-card class="admin-card">
+              
+              <!-- State 1: New Product (Variants not managed yet) -->
+              <div class="new-product-notice" *ngIf="!editingProductId">
+                <mat-icon>info</mat-icon>
+                <h3>Variants Management</h3>
+                <p>Variants (sizes, SKUs, inventory stock levels) will be editable here once you save and create this product.</p>
+              </div>
+
+              <!-- State 2: Existing Product Variants Manager -->
+              <div class="active-variants-editor" *ngIf="editingProductId">
+                <div class="card-header-actions">
+                  <h2>Inventory Variants</h2>
+                  <button mat-stroked-button color="primary" (click)="openNewVariantForm()" *ngIf="!showVariantForm">
+                    <mat-icon>add</mat-icon> Add Variant
+                  </button>
+                </div>
+                <mat-divider></mat-divider>
+
+                <!-- Inline Variant Form -->
+                <div class="variant-form-box" *ngIf="showVariantForm">
+                  <h3>{{ editingVariantId ? 'Edit Variant' : 'Add New Variant' }}</h3>
+                  
+                  <form #vForm="ngForm" (ngSubmit)="saveVariant()">
+                    <div class="form-grid-2">
+                      <mat-form-field appearance="outline">
+                        <mat-label>Variant SKU</mat-label>
+                        <input matInput [(ngModel)]="variantForm.sku" name="vSku" required>
+                      </mat-form-field>
+                      <mat-form-field appearance="outline">
+                        <mat-label>Title (e.g. Size 10)</mat-label>
+                        <input matInput [(ngModel)]="variantForm.title" name="vTitle" required>
+                      </mat-form-field>
+                    </div>
+
+                    <div class="form-grid-2">
+                      <mat-form-field appearance="outline">
+                        <mat-label>Price Modifier ($)</mat-label>
+                        <input matInput type="number" step="0.01" [(ngModel)]="variantForm.price_modifier" name="vMod" required>
+                      </mat-form-field>
+                      <mat-form-field appearance="outline">
+                        <mat-label>Stock Level (Quantity)</mat-label>
+                        <input matInput type="number" [(ngModel)]="variantForm.stock_quantity" name="vStock" required>
+                      </mat-form-field>
+                    </div>
+
+                    <div class="form-actions">
+                      <button mat-button type="button" (click)="closeVariantForm()">CANCEL</button>
+                      <button mat-raised-button color="primary" type="submit" [disabled]="!vForm.form.valid">SAVE VARIANT</button>
+                    </div>
+                  </form>
+                  <mat-divider style="margin: 20px 0;"></mat-divider>
+                </div>
+
+                <!-- Variants Table Row Listing -->
+                <div class="variants-row-list" *ngIf="variants.length > 0; else noVariants">
+                  <div class="variant-row-item" *ngFor="let v of variants">
+                    <div class="v-main-info">
+                      <h4>{{ v.title }}</h4>
+                      <span class="v-sku">{{ v.sku }}</span>
+                    </div>
+
+                    <div class="v-inventory-status">
+                      <span class="stock-chip" [ngClass]="v.stock_quantity > 0 ? 'in-stock' : 'out-of-stock'">
+                        {{ v.stock_quantity }} units in stock
+                      </span>
+                    </div>
+
+                    <div class="v-price-mod">
+                      Modifier: <strong>+{{ v.price_modifier | currency }}</strong>
+                    </div>
+
+                    <div class="v-actions">
+                      <button mat-icon-button color="primary" (click)="openEditVariantForm(v)">
+                        <mat-icon>edit</mat-icon>
+                      </button>
+                      <button mat-icon-button color="warn" (click)="deleteVariant(v.id)">
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <ng-template #noVariants>
+                  <div class="empty-list-box" *ngIf="!showVariantForm">
+                    <mat-icon>list</mat-icon>
+                    <p>No variants found for this product. Add a variant to let customers select options.</p>
+                  </div>
+                </ng-template>
+
+              </div>
+            </mat-card>
+          </div>
+
+        </div>
+
+      </div>
+    </mat-tab>
+
+    <!-- TAB 2: Categories Settings -->
+    <mat-tab label="Categories Manager">
+      <div class="tab-content">
+        <div class="view-header">
+          <h2>Store Categories</h2>
+          <button mat-raised-button color="primary" (click)="openNewCategoryForm()" *ngIf="!showCategoryForm">
+            <mat-icon>add</mat-icon> ADD CATEGORY
+          </button>
+        </div>
+        <mat-divider></mat-divider>
+
+        <!-- Inline Category Form -->
+        <div class="category-form-box" *ngIf="showCategoryForm">
+          <h3>Create New Category</h3>
+          <form #catForm="ngForm" (ngSubmit)="saveCategory()">
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="half-width">
+                <mat-label>Category Name</mat-label>
+                <input matInput [(ngModel)]="categoryForm.name" name="catName" (input)="generateCategorySlug()" required>
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="half-width">
+                <mat-label>Slug (SEO URL Prefix)</mat-label>
+                <input matInput [(ngModel)]="categoryForm.slug" name="catSlug" required>
+              </mat-form-field>
+            </div>
+            <div class="form-actions">
+              <button mat-button type="button" (click)="closeCategoryForm()">CANCEL</button>
+              <button mat-raised-button color="primary" type="submit" [disabled]="!catForm.form.valid">SAVE CATEGORY</button>
+            </div>
+          </form>
+          <mat-divider style="margin: 20px 0;"></mat-divider>
+        </div>
+
+        <div class="categories-flex-grid">
+          <mat-card class="category-grid-card" *ngFor="let cat of categories">
+            <mat-card-header>
+              <div mat-card-avatar class="cat-avatar"><mat-icon>folder</mat-icon></div>
+              <mat-card-title>{{ cat.name }}</mat-card-title>
+              <mat-card-subtitle>/category/{{ cat.slug }}</mat-card-subtitle>
+            </mat-card-header>
+          </mat-card>
+        </div>
+      </div>
+    </mat-tab>
+    
+    <!-- TAB 3: Customer Orders Dashboard -->
+    <mat-tab label="Customer Orders">
+      <div class="tab-content">
+        <div class="view-header">
+          <h2>Customer Orders & Transactions ({{ orders.length }} total)</h2>
+        </div>
+        <mat-divider></mat-divider>
+
+        <div class="orders-admin-list" *ngIf="orders.length > 0; else noOrders">
+          <mat-card class="admin-order-card" *ngFor="let ord of orders" style="margin-bottom: 20px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02) !important; border: 1px solid #e2e8f0; border-radius: 12px;">
+            <div class="order-main-row" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+              <div class="order-id-meta">
+                <span class="order-date-label" style="font-size: 0.8rem; color: #94a3b8; display: block;">
+                  {{ ord.created_at.toDate() | date:'medium' }}
+                </span>
+                <h3 style="margin: 4px 0; font-size: 1.1rem; font-weight: 700; color: #0f172a;">
+                  Order ID: {{ ord.id }}
+                </h3>
+                <span class="client-email" style="font-size: 0.9rem; color: #64748b;">
+                  Client UID: {{ ord.user_id }}
+                </span>
+              </div>
+
+              <div class="order-financial-info" style="text-align: right;">
+                <span style="font-size: 0.8rem; color: #94a3b8; display: block;">TOTAL AMOUNT</span>
+                <strong style="font-size: 1.3rem; color: #10b981;">{{ ord.total_amount | currency }}</strong>
+              </div>
+
+              <!-- Status Dropdown Select -->
+              <div class="order-status-controller">
+                <mat-form-field appearance="outline" style="width: 180px; margin-bottom: -1.25em;">
+                  <mat-label>Order Status</mat-label>
+                  <mat-select [ngModel]="ord.order_status" (selectionChange)="updateStatus(ord.id, $event.value)">
+                    <mat-option value="Processing">Processing</mat-option>
+                    <mat-option value="Shipped">Shipped</mat-option>
+                    <mat-option value="Delivered">Delivered</mat-option>
+                    <mat-option value="Cancelled">Cancelled</mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+
+              <div class="order-row-actions">
+                <button mat-stroked-button color="primary" (click)="toggleOrderItems(ord)">
+                  <mat-icon>{{ selectedOrderForItems?.id === ord.id ? 'expand_less' : 'expand_more' }}</mat-icon>
+                  {{ selectedOrderForItems?.id === ord.id ? 'Hide Items' : 'View Items' }}
+                </button>
+              </div>
+            </div>
+
+            <!-- Collapsible Items Section -->
+            <div class="order-items-drawer" *ngIf="selectedOrderForItems?.id === ord.id" style="margin-top: 24px; padding-top: 20px; border-top: 1px solid #f1f5f9;">
+              <h4 style="font-weight: 700; font-size: 0.95rem; margin-bottom: 16px;">Purchased Items & Shipping</h4>
+              
+              <div class="order-items-grid" style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 32px;">
+                <!-- Left: Items list -->
+                <div class="items-list-col">
+                  <div class="drawer-item-row" *ngFor="let item of orderItems" style="display: flex; gap: 16px; align-items: center; margin-bottom: 12px; padding: 12px; background: #f8fafc; border-radius: 8px; border: 1px solid #f1f5f9;">
+                    <img [src]="item.imageUrl" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">
+                    <div class="drawer-item-details" style="flex: 1;">
+                      <h5 style="margin: 0; font-size: 0.95rem; font-weight: 600;">{{ item.product_name }}</h5>
+                      <span style="font-size: 0.8rem; color: #64748b;">Variant: {{ item.variant_title }} | Qty: {{ item.quantity }}</span>
+                    </div>
+                    <div style="font-weight: 700; font-size: 0.9rem;">
+                      {{ item.price_at_purchase * item.quantity | currency }}
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Right: Delivery Details -->
+                <div class="delivery-details-col" style="background: #f8fafc; padding: 16px; border-radius: 8px; border: 1px solid #f1f5f9; font-size: 0.9rem; line-height: 1.6;">
+                  <h5 style="margin: 0 0 10px 0; font-size: 0.95rem; font-weight: 700; color: #0f172a;">Shipping Address</h5>
+                  <p style="margin: 0 0 12px 0; color: #334155;">
+                    <strong>{{ ord.shipping_name }}</strong><br>
+                    {{ ord.shipping_address }}
+                  </p>
+                  <mat-divider style="margin-bottom: 12px;"></mat-divider>
+                  <h5 style="margin: 0 0 6px 0; font-size: 0.95rem; font-weight: 700; color: #0f172a;">Billing Address</h5>
+                  <p style="margin: 0; color: #334155;">
+                    <strong>{{ ord.billing_name }}</strong><br>
+                    {{ ord.billing_address }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </mat-card>
+        </div>
+
+        <ng-template #noOrders>
+          <div class="empty-list-box" style="padding: 60px 0; text-align: center; color: #94a3b8; border: 2px dashed #e2e8f0; border-radius: 12px; display: flex; flex-direction: column; align-items: center;">
+            <mat-icon style="font-size: 48px; width: 48px; height: 48px; color: #cbd5e1; margin-bottom: 16px;">receipt_long</mat-icon>
+            <p>No customer orders have been placed in the system yet.</p>
+          </div>
+        </ng-template>
+      </div>
+    </mat-tab>
+
+  </mat-tab-group>
+</div>

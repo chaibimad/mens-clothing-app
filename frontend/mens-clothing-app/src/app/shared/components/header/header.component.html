@@ -1,0 +1,82 @@
+<mat-toolbar color="primary" class="app-toolbar">
+  <div class="header-section header-section--left">
+    <span class="brand-logo" routerLink="/">
+      <span class="logo-box">MAN</span>
+      <span class="logo-text">STYLE</span>
+    </span>
+  </div>
+
+  <div class="header-section header-section--center">
+    <div class="nav-links">
+      <a mat-button routerLink="/">HOME</a>
+      <a mat-button routerLink="/about">ABOUT US</a>
+      <a mat-button routerLink="/contact">CONTACT</a>
+      
+      <button mat-button [matMenuTriggerFor]="categoryMenu">
+        CATEGORIES <mat-icon iconPositionEnd>arrow_drop_down</mat-icon>
+      </button>
+      <mat-menu #categoryMenu="matMenu">
+        <button mat-menu-item *ngFor="let cat of categories$ | async" [routerLink]="['/category', cat.slug]">
+          {{ cat.name }}
+        </button>
+        <mat-divider></mat-divider>
+        <button mat-menu-item routerLink="/products">View All Products</button>
+      </mat-menu>
+    </div>
+  </div>
+
+  <div class="header-section header-section--right">
+    <div class="search-container">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input type="text" 
+             class="search-input" 
+             placeholder="Search..." 
+             [(ngModel)]="searchQuery"
+             (input)="onSearchInput()"
+             (blur)="closeSuggestions()"
+             (keyup.enter)="onSearch()">
+
+      <!-- Search Auto-Suggestions Dropdown Overlay -->
+      <div class="search-suggestions-overlay" *ngIf="showSuggestions">
+        <div class="suggestion-item" 
+             *ngFor="let p of suggestions" 
+             (mousedown)="selectSuggestion(p)">
+          <img [src]="p.imageUrl" [alt]="p.name" class="suggestion-thumb">
+          <div class="suggestion-details">
+            <span class="suggestion-name">{{ p.name }}</span>
+            <span class="suggestion-price">{{ p.base_price | currency }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button mat-icon-button aria-label="Account" [routerLink]="(user$ | async) ? '/profile' : '/login'">
+        <mat-icon>person_outline</mat-icon>
+      </button>
+      <button mat-icon-button aria-label="Cart" routerLink="/cart">
+        <ng-container *ngIf="(cartItemCount$ | async) as count; else emptyCartIcon">
+          <mat-icon [matBadge]="count" matBadgeColor="warn">shopping_bag</mat-icon>
+        </ng-container>
+        <ng-template #emptyCartIcon>
+          <mat-icon>shopping_bag</mat-icon>
+        </ng-template>
+      </button>
+    </div>
+    
+    <div class="auth-buttons" *ngIf="user$ | async as user; else guestActions">
+      <span class="auth-greeting" routerLink="/profile" style="cursor: pointer;" title="View Profile">
+        Hi, {{ user.displayName || user.email }}
+      </span>
+      <a mat-button routerLink="/admin" style="margin: 0 8px;" *ngIf="isAdmin$ | async">Admin</a>
+      <button mat-stroked-button (click)="logout()">Logout</button>
+    </div>
+
+    <ng-template #guestActions>
+      <div class="auth-buttons">
+        <a mat-button routerLink="/login">Login</a>
+        <a mat-raised-button color="accent" (click)="onSignUp()">Sign Up</a>
+      </div>
+    </ng-template>
+  </div>
+</mat-toolbar>

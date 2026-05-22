@@ -1,0 +1,74 @@
+<section class="hero">
+  <div class="hero__content">
+    <div class="hero__eyebrow">Season Sale</div>
+    <h1 class="hero__title">Men's Fashion</h1>
+    <p class="hero__subtitle">New arrivals every week. Cash on delivery. Fixed shipping.</p>
+
+    <div class="hero__actions">
+      <a mat-raised-button color="primary" routerLink="/products">Shop now</a>
+      <a mat-stroked-button color="accent" routerLink="/products">See products</a>
+    </div>
+  </div>
+
+  <div class="hero__art" aria-hidden="true"></div>
+</section>
+
+
+<section class="categories">
+  <h2 class="section-title">Featured Categories</h2>
+  <div class="categories__grid">
+    <mat-card class="category-card" *ngFor="let c of categories">
+      <div class="category-card__subtitle">{{ c.subtitle }}</div>
+      <div class="category-card__title">{{ c.title }}</div>
+      <a mat-button color="primary" [routerLink]="['/category', c.slug]">Shop</a>
+    </mat-card>
+  </div>
+</section>
+
+<section class="featured-products">
+  <h2 class="section-title">Featured Products</h2>
+  
+  <div class="tab-bar">
+    <button class="tab-button" [class.active]="(activeTab$ | async) === 'New Arrival'" (click)="setTab('New Arrival')">New Arrival</button>
+    <button class="tab-button" [class.active]="(activeTab$ | async) === 'Best Selling'" (click)="setTab('Best Selling')">Best Selling</button>
+    <button class="tab-button" [class.active]="(activeTab$ | async) === 'Top Rated'" (click)="setTab('Top Rated')">Top Rated</button>
+  </div>
+
+  <div class="products-grid">
+    <mat-card class="product-card" *ngFor="let p of filteredProducts$ | async" [routerLink]="['/product', p.slug]">
+      <div class="product-card__image-container">
+        <img [src]="p.imageUrl" [alt]="p.name" class="product-card__image">
+        <div class="product-card__badges">
+          <span class="badge badge--sale" *ngFor="let badge of p.badges" [class.badge--featured]="badge === 'FEATURED'">
+            {{ badge }}
+          </span>
+        </div>
+      </div>
+      
+      <mat-card-content class="product-card__content">
+        <h3 class="product-card__name">{{ p.name }}</h3>
+        
+        <div class="product-card__rating">
+          <div class="stars">
+            <mat-icon *ngFor="let s of [1,2,3,4,5]" [class.filled]="s <= p.rating">star</mat-icon>
+          </div>
+          <span class="reviews-count">({{ p.reviews }})</span>
+        </div>
+        
+        <div class="product-card__price">
+          <span class="current-price">{{ p.base_price | currency }}</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</section>
+
+<section class="features features--bottom">
+  <mat-card class="feature-card" *ngFor="let f of features">
+    <mat-icon class="feature-card__icon" aria-hidden="true">{{ f.icon }}</mat-icon>
+    <div class="feature-card__text">
+      <div class="feature-card__title">{{ f.title }}</div>
+      <div class="feature-card__subtitle">{{ f.subtitle }}</div>
+    </div>
+  </mat-card>
+</section>

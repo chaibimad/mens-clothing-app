@@ -1,0 +1,57 @@
+<section class="auth-layout">
+  <div class="auth-copy">
+    <p class="auth-copy__eyebrow">Create account</p>
+    <h1>Join The Store</h1>
+    <p>
+      Save your favorites, move through checkout faster, and stay updated on new arrivals.
+    </p>
+
+    <ul class="auth-benefits">
+      <li>Track orders and delivery updates</li>
+      <li>Save product sizes and wishlist items</li>
+      <li>Get early access to featured drops</li>
+    </ul>
+  </div>
+
+  <mat-card class="auth-card">
+    <h2>Sign Up</h2>
+    <p>Set up your customer account in a few steps.</p>
+
+    <p class="config-message" *ngIf="!isFirebaseConfigured">
+      {{ configurationMessage }}
+    </p>
+
+    <label>
+      <span>Full name</span>
+      <input [(ngModel)]="fullName" placeholder="John Carter" />
+    </label>
+
+    <label>
+      <span>Email address</span>
+      <input [(ngModel)]="email" type="email" placeholder="john@example.com" />
+    </label>
+
+    <label>
+      <span>Password</span>
+      <input [(ngModel)]="password" type="password" placeholder="Create a password" />
+    </label>
+
+    <label class="checkbox">
+      <input [(ngModel)]="agreeToUpdates" type="checkbox" />
+      <span>Send me updates about new arrivals and exclusive offers</span>
+    </label>
+
+    <button mat-raised-button color="primary" (click)="createAccount()" [disabled]="isLoading || !isFirebaseConfigured">
+      {{ isLoading ? 'Creating Account...' : 'Create Account' }}
+    </button>
+
+    <p class="error-message" *ngIf="errorMessage">
+      {{ errorMessage }}
+    </p>
+
+    <div class="auth-links">
+      <span>Already have an account?</span>
+      <a routerLink="/login">Log in</a>
+    </div>
+  </mat-card>
+</section>

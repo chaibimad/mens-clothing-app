@@ -1,0 +1,109 @@
+<section class="catalog-hero">
+  <div>
+    <p class="catalog-hero__eyebrow">Shop</p>
+    <h1>{{ activeCategoryHeading || 'All Products' }}</h1>
+    <p class="catalog-hero__subtitle">
+      Browse the latest men's essentials with category filters, search, and smart sorting.
+    </p>
+  </div>
+  <div class="catalog-hero__summary" *ngIf="filteredProducts$ | async as products">
+    <span>{{ products.length }} products</span>
+    <button mat-button color="primary" *ngIf="searchTerm || selectedCategoryId !== 'All' || sortBy !== 'featured'" (click)="clearFilters()">
+      Clear filters
+    </button>
+  </div>
+</section>
+
+<section class="catalog-toolbar">
+  <div class="catalog-toolbar__search">
+    <mat-icon>search</mat-icon>
+    <input
+      [(ngModel)]="searchTerm"
+      (keyup.enter)="applySearch()"
+      placeholder="Search products or style"
+    />
+    <button mat-button color="primary" (click)="applySearch()">Search</button>
+  </div>
+
+  <div class="catalog-toolbar__controls">
+    <!-- Option 3: Price range slider -->
+    <div class="price-slider-control" style="display: flex; flex-direction: column; gap: 4px; min-width: 180px;">
+      <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">
+        <span>Max Price</span>
+        <span style="color: #0f172a; font-weight: 700;">{{ selectedMaxPrice | currency }}</span>
+      </div>
+      <input 
+        type="range" 
+        [min]="10" 
+        [max]="maxPriceLimit" 
+        [(ngModel)]="selectedMaxPrice" 
+        (input)="onPriceChange()"
+        style="width: 100%; cursor: pointer; accent-color: #000; height: 6px; border-radius: 3px; background: #e2e8f0; border: none; outline: none;"
+      />
+    </div>
+
+    <label>
+      <span>Category</span>
+      <select [(ngModel)]="selectedCategoryId" (change)="updateCategory(selectedCategoryId)">
+        <option *ngFor="let opt of categoryOptions$ | async" [ngValue]="opt.value">{{ opt.label }}</option>
+      </select>
+    </label>
+
+    <label>
+      <span>Sort By</span>
+      <select [(ngModel)]="sortBy" (change)="onSortChange()">
+        <option *ngFor="let option of sortOptions" [ngValue]="option.value">{{ option.label }}</option>
+      </select>
+    </label>
+  </div>
+</section>
+
+<section class="category-pills">
+  <button
+    mat-stroked-button
+    *ngFor="let opt of categoryOptions$ | async"
+    [class.is-active]="selectedCategoryId === opt.value"
+    (click)="updateCategory(opt.value)"
+  >
+    {{ opt.label }}
+  </button>
+</section>
+
+<ng-container *ngIf="filteredProducts$ | async as products">
+  <section class="products-grid" *ngIf="products.length; else emptyState">
+    <mat-card class="product-card" *ngFor="let product of products" [routerLink]="['/product', product.slug]">
+      <div class="product-card__image-container">
+        <img [src]="product.imageUrl" [alt]="product.name" class="product-card__image" />
+        <div class="product-card__badges" *ngIf="product.badges.length">
+          <span class="badge" *ngFor="let badge of product.badges">{{ badge }}</span>
+        </div>
+      </div>
+
+      <mat-card-content class="product-card__content">
+        <h2 class="product-card__name">{{ product.name }}</h2>
+
+        <div class="product-card__rating">
+          <div class="stars">
+            <mat-icon *ngFor="let star of [1, 2, 3, 4, 5]" [class.filled]="star <= product.rating">star</mat-icon>
+          </div>
+          <span>({{ product.reviews }})</span>
+        </div>
+
+        <p class="product-card__description">{{ product.description }}</p>
+
+        <div class="product-card__price">
+          <span class="current-price">{{ product.base_price | currency }}</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </section>
+</ng-container>
+
+<ng-template #emptyState>
+  <mat-card class="empty-state">
+    <mat-icon>search_off</mat-icon>
+    <h2>No products match your filters</h2>
+    <p>Try a different search term or switch to another category.</p>
+    <button mat-raised-button color="primary" (click)="clearFilters()">Reset filters</button>
+  </mat-card>
+</ng-template>

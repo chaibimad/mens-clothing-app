@@ -1,0 +1,122 @@
+.auth-layout {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 24px;
+  align-items: stretch;
+  min-height: 70vh;
+}
+
+.auth-copy {
+  padding: 32px 24px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(26, 26, 46, 0.08), rgba(233, 69, 96, 0.12));
+  display: grid;
+  align-content: center;
+}
+
+.auth-copy__eyebrow {
+  margin: 0 0 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: rgba(26, 26, 46, 0.7);
+}
+
+.auth-copy h1 {
+  margin: 0 0 12px;
+  font-size: clamp(32px, 5vw, 48px);
+}
+
+.auth-copy p {
+  margin: 0;
+  line-height: 1.7;
+  color: rgba(0, 0, 0, 0.72);
+}
+
+.auth-benefits {
+  margin: 24px 0 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 12px;
+}
+
+.auth-card {
+  padding: 28px;
+  display: grid;
+  gap: 16px;
+  align-content: start;
+
+  h2 {
+    margin: 0;
+  }
+
+  p {
+    margin: 0;
+    color: rgba(0, 0, 0, 0.68);
+  }
+}
+
+label {
+  display: grid;
+  gap: 8px;
+  font-weight: 600;
+}
+
+input[type='email'],
+input[type='password'],
+input[type='text'] {
+  width: 100%;
+  border: 1px solid rgba(26, 26, 46, 0.15);
+  border-radius: 12px;
+  padding: 14px 16px;
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+}
+
+.checkbox input {
+  width: 18px;
+  height: 18px;
+}
+
+.config-message,
+.error-message {
+  padding: 14px 16px;
+  border-radius: 12px;
+}
+
+.config-message {
+  background: rgba(255, 193, 7, 0.14);
+  color: #7a5a00 !important;
+}
+
+.error-message {
+  background: rgba(211, 47, 47, 0.12);
+  color: #8f1d1d !important;
+}
+
+.auth-links {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: rgba(0, 0, 0, 0.72);
+}
+
+.auth-links a {
+  color: #3f51b5;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+@media (max-width: 900px) {
+  .auth-layout {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+}

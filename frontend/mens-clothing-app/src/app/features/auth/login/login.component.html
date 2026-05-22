@@ -1,0 +1,50 @@
+<section class="auth-layout">
+  <div class="auth-copy">
+    <p class="auth-copy__eyebrow">Welcome back</p>
+    <h1>Sign In To Continue</h1>
+    <p>
+      Access saved favorites, continue shopping, and manage your account details in one place.
+    </p>
+
+    <ul class="auth-points">
+      <li>Fast access to your recent orders</li>
+      <li>Easy return and shipping support</li>
+      <li>Quick checkout for new arrivals</li>
+    </ul>
+  </div>
+
+  <mat-card class="auth-card">
+    <h2>Login</h2>
+    <p>Use your email and password to access your customer area.</p>
+
+    <p class="config-message" *ngIf="!isFirebaseConfigured">
+      {{ configurationMessage }}
+    </p>
+
+    <label>
+      <span>Email address</span>
+      <input [(ngModel)]="email" type="email" placeholder="you@example.com" />
+    </label>
+
+    <label>
+      <span>Password</span>
+      <input [(ngModel)]="password" type="password" placeholder="Enter your password" />
+    </label>
+
+    <label class="checkbox">
+      <input [(ngModel)]="rememberMe" type="checkbox" />
+      <span>Remember me on this device</span>
+    </label>
+
+    <div class="auth-actions">
+      <button mat-raised-button color="primary" (click)="signIn()" [disabled]="isLoading || !isFirebaseConfigured">
+        {{ isLoading ? 'Signing In...' : 'Login' }}
+      </button>
+      <a mat-button routerLink="/signup">Create account</a>
+    </div>
+
+    <p class="error-message" *ngIf="errorMessage">
+      {{ errorMessage }}
+    </p>
+  </mat-card>
+</section>
